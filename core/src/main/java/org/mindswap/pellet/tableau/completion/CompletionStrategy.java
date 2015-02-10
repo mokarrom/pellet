@@ -192,7 +192,7 @@ public abstract class CompletionStrategy {
 			tableauRules.add(chooseRule);
 		}
 
-		tableauRules.add(maxRule);
+		tableauRules.add(maxRule);	
 
 		if (fullDatatypeReasoning) {
 			tableauRules.add(dataCardRule);
@@ -206,7 +206,7 @@ public abstract class CompletionStrategy {
 
 		tableauRules.add(someValuesRule);
 
-		tableauRules.add(minRule);
+		tableauRules.add(minRule);	
 
 		// no need to add allValuesRule to the list since it is applied on-the-fly
 		if (expr.hasComplexSubRoles()) {

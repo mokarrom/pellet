@@ -113,6 +113,9 @@ public class PelletOptions {
 	public static Properties setOptions(Properties newOptions) {
 		Properties oldOptions = new Properties();
 
+		USE_QC_REASONING = getBooleanProperty( newOptions, "USE_QC_REASONING",
+				USE_QC_REASONING, oldOptions );
+		
 		ALWAYS_REBUILD_RETE = getBooleanProperty( newOptions, "ALWAYS_REBUILD_RETE",
 				ALWAYS_REBUILD_RETE, oldOptions );
 
@@ -343,6 +346,12 @@ public class PelletOptions {
 
 		return returnValue;
 	}
+
+	/**
+	 * When this option is set reasoning tasks will be performed under non-
+	 * classical semantics, i.e, QCDL.
+	 */
+	public static boolean								USE_QC_REASONING							= false;
 
 	/**
 	 * When this option is set completion will go on even if a clash is detected

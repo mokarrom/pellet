@@ -66,6 +66,7 @@ import org.mindswap.pellet.output.ATermBaseVisitor;
 import org.mindswap.pellet.tableau.branch.Branch;
 import org.mindswap.pellet.tableau.completion.CompletionStrategy;
 import org.mindswap.pellet.tableau.completion.EmptySRIQStrategy;
+import org.mindswap.pellet.tableau.completion.QCALCStrategy;
 import org.mindswap.pellet.tableau.completion.SROIQStrategy;
 import org.mindswap.pellet.tableau.completion.incremental.DependencyIndex;
 import org.mindswap.pellet.tableau.completion.incremental.IncrementalRestore;
@@ -4525,8 +4526,12 @@ public class KnowledgeBase {
 			if( conceptSatisfiability && !expressivity.hasNominal() ) {
 				return new EmptySRIQStrategy( abox );
 			}							
-		}		
-
+		}	
+		
+		if( PelletOptions.USE_QC_REASONING ) {
+			return new QCALCStrategy( abox );
+		}
+		
 		return new SROIQStrategy( abox );
 	}
 
