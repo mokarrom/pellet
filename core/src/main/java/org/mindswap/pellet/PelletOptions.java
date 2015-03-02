@@ -399,7 +399,7 @@ public class PelletOptions {
 
 	public static final String							NO_SORTING								= "NO";
 	public static final String							OLDEST_FIRST							= "OLDEST_FIRST";
-	public static String								USE_DISJUNCTION_SORTING					= OLDEST_FIRST;
+	public static String								USE_DISJUNCTION_SORTING					= NO_SORTING;	//[TODO]: original OLDEST_FIRST.
 
 	/**
 	 * TBox absorption will be used to move some of the General Inclusion Axioms

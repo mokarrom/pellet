@@ -192,7 +192,7 @@ public abstract class CompletionStrategy {
 			tableauRules.add(chooseRule);
 		}
 
-		tableauRules.add(maxRule);	
+		//tableauRules.add(maxRule);	//[TODO]: Temporarily commented.
 
 		if (fullDatatypeReasoning) {
 			tableauRules.add(dataCardRule);
@@ -200,13 +200,13 @@ public abstract class CompletionStrategy {
 
 		tableauRules.add(dataSatRule);
 
-		tableauRules.add(unfoldingRule);
+		//tableauRules.add(unfoldingRule);	//[TODO]: Temporarily commented.
 
 		tableauRules.add(disjunctionRule);
 
 		tableauRules.add(someValuesRule);
 
-		tableauRules.add(minRule);	
+		//tableauRules.add(minRule);	//[TODO]: Temporarily commented.
 
 		// no need to add allValuesRule to the list since it is applied on-the-fly
 		if (expr.hasComplexSubRoles()) {

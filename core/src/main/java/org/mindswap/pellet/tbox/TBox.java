@@ -32,6 +32,7 @@ package org.mindswap.pellet.tbox;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.mindswap.pellet.tbox.impl.Unfolding;
@@ -80,6 +81,8 @@ public interface TBox {
 	 */
 	public Iterator<Unfolding> unfold( ATermAppl c );
 
+	public List<Unfolding> getTC();
+	
 	/**
 	 * Returns if a concept has only primitive definitions in this TBox. Only
 	 * primitive definitions mean the concept did not have any equivalents

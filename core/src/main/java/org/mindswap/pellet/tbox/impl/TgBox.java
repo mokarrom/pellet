@@ -58,6 +58,8 @@ public class TgBox extends TBoxBase {
 	// universal concept
 	private List<Unfolding>		UC	= null;
 	
+	// internalize concept
+	private List<Unfolding>		TC	= null;
 	/*
 	 * Constructors
 	 */
@@ -70,6 +72,96 @@ public class TgBox extends TBoxBase {
 	 * Utility Functions
 	 */
 
+	/**
+	 * 
+	 */
+	public void qcInternalize() {
+		
+		TC = new ArrayList<Unfolding>();
+		
+		log.fine( "QC-internalize started" );
+
+		if( log.isLoggable( Level.FINE ) ) {
+			log.fine( "Tg.size was " + termhash.size() + " Tu.size was " + tbox.Tu.size() );
+		}
+		
+//		//internalize Tg
+//		for( TermDefinition termDef : termhash.values() ) {
+//			for( ATermAppl subClassAxiom : termDef.getSubClassAxioms() ) {
+//				ATermAppl c1 = (ATermAppl) subClassAxiom.getArgument( 0 );
+//				ATermAppl c2 = (ATermAppl) subClassAxiom.getArgument( 1 );
+//				ATermAppl notC1 = ATermUtils.makeNot( c1 );
+//				ATermAppl notC1orC2 = ATermUtils.makeOr( notC1, c2 );
+//				ATermAppl norm = ATermUtils.normalize( notC1orC2 );
+//
+//				Set<ATermAppl> explanation;
+//				if( PelletOptions.USE_TRACING )
+//					explanation = tbox.getAxiomExplanation( subClassAxiom );
+//				else
+//					explanation = Collections.emptySet();
+//
+//				TC.add( Unfolding.create( norm, explanation ) );
+//			}
+//
+//			for( ATermAppl eqClassAxiom : termDef.getEqClassAxioms() ) {
+//				ATermAppl c1 = (ATermAppl) eqClassAxiom.getArgument( 0 );
+//				ATermAppl c2 = (ATermAppl) eqClassAxiom.getArgument( 1 );
+//				ATermAppl notC1 = ATermUtils.makeNot( c1 );
+//				ATermAppl notC2 = ATermUtils.makeNot( c2 );
+//				ATermAppl notC1orC2 = ATermUtils.makeOr( notC1, c2 );
+//				ATermAppl notC2orC1 = ATermUtils.makeOr( notC2, c1 );
+//				Set<ATermAppl> explanation;
+//				if( PelletOptions.USE_TRACING )
+//					explanation = tbox.getAxiomExplanation( eqClassAxiom );
+//				else
+//					explanation = Collections.emptySet();
+//
+//				TC.add( Unfolding.create( ATermUtils.normalize( notC1orC2 ),
+//						explanation ) );
+//				TC.add( Unfolding.create( ATermUtils.normalize( notC2orC1 ),
+//						explanation ) );
+//			}
+//		}
+		
+		//internalize Tu
+		for( TermDefinition termDef : tbox.Tu.termhash.values() ) {
+			for( ATermAppl subClassAxiom : termDef.getSubClassAxioms() ) {
+				ATermAppl c1 = (ATermAppl) subClassAxiom.getArgument( 0 );
+				ATermAppl c2 = (ATermAppl) subClassAxiom.getArgument( 1 );
+				ATermAppl notC1 = ATermUtils.makeNot( c1 );
+				ATermAppl notC1orC2 = ATermUtils.makeOr( notC1, c2 );
+				ATermAppl norm = ATermUtils.normalize( notC1orC2 );
+
+				Set<ATermAppl> explanation;
+				if( PelletOptions.USE_TRACING )
+					explanation = tbox.getAxiomExplanation( subClassAxiom );
+				else
+					explanation = Collections.emptySet();
+
+				TC.add( Unfolding.create( norm, explanation ) );
+			}
+
+			for( ATermAppl eqClassAxiom : termDef.getEqClassAxioms() ) {
+				ATermAppl c1 = (ATermAppl) eqClassAxiom.getArgument( 0 );
+				ATermAppl c2 = (ATermAppl) eqClassAxiom.getArgument( 1 );
+				ATermAppl notC1 = ATermUtils.makeNot( c1 );
+				ATermAppl notC2 = ATermUtils.makeNot( c2 );
+				ATermAppl notC1orC2 = ATermUtils.makeOr( notC1, c2 );
+				ATermAppl notC2orC1 = ATermUtils.makeOr( notC2, c1 );
+				Set<ATermAppl> explanation;
+				if( PelletOptions.USE_TRACING )
+					explanation = tbox.getAxiomExplanation( eqClassAxiom );
+				else
+					explanation = Collections.emptySet();
+
+				TC.add( Unfolding.create( ATermUtils.normalize( notC1orC2 ),
+						explanation ) );
+				TC.add( Unfolding.create( ATermUtils.normalize( notC2orC1 ),
+						explanation ) );
+			}
+		}	
+		
+	}
 	public void internalize() {
 
 		UC = new ArrayList<Unfolding>();
@@ -473,6 +565,13 @@ public class TgBox extends TBoxBase {
 	 */
 	public List<Unfolding> getUC() {
 		return UC;
+	}
+	
+	/**
+	 * @return Returns the UC.
+	 */
+	public List<Unfolding> getTC() {
+		return TC;
 	}
 
 	public int size() {

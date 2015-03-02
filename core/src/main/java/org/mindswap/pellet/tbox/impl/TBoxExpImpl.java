@@ -509,7 +509,11 @@ public class TBoxExpImpl implements TBox {
 	}
 
 	public void prepare() {
-		Tg.absorb();
+		//[TODO]: Temporarily commented.
+		if( PelletOptions.USE_QC_REASONING )
+			Tg.qcInternalize();
+
+		Tg.absorb();		
 		Tg.internalize();
 		Tu.normalize();
 	}
@@ -521,6 +525,10 @@ public class TBoxExpImpl implements TBox {
 		return result;
 	}
 
+	public List<Unfolding> getTC() {
+		return Tg.getTC();
+	}
+	
 	public boolean isPrimitive(ATermAppl c) {
 		TermDefinition td = Tu.getTD( c );		
 		return ATermUtils.isPrimitive( c ) && (td == null || td.isPrimitive());
