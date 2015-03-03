@@ -190,21 +190,7 @@ public class QCALCStrategy extends CompletionStrategy {
 		while (i.hasNext()) {
 			Individual n = i.next();
 
-			//Add internalize concepts to the node 
-			List<Unfolding> intConceptList = tbox.getTC();
-	        int size = intConceptList.size();
-	        for( int j = 0; j < size; j++ ) {
-	        	 Unfolding intConcept = intConceptList.get(j);
-	        	 ATermAppl c = intConcept.getResult();
-	        	 
-	        	 DependencySet ds = DependencySet.INDEPENDENT;
-	        	 
-	        	 if (log.isLoggable(Level.FINE)) {
-	     			log.fine("Node: " + n + " # adding internalize concept: " + ATermUtils.toString(c));
-	     		 }
-	        	 
-	        	 addType( n, c , ds );
-	        }
+			addInternalizedConcept(n);
 			
 			if (n.isMerged()) {
 				continue;
@@ -351,6 +337,36 @@ public class QCALCStrategy extends CompletionStrategy {
 			}
 		}
 	}//end complete 
+	
+	public Individual createFreshIndividual(Individual parent, DependencySet ds) {
+		Individual ind = abox.addFreshIndividual(parent, ds);
+
+		addInternalizedConcept(ind);
+		
+		applyUniversalRestrictions(ind);
+
+		return ind;
+	}
+	
+	//Add internalize concepts to the node 
+	public void addInternalizedConcept(Node n) {
+		
+		List<Unfolding> intConceptList = tbox.getTC();
+        int size = intConceptList.size();
+        
+        for( int j = 0; j < size; j++ ) {   	 
+        	 Unfolding intConcept = intConceptList.get(j);
+        	 ATermAppl c = intConcept.getResult();
+        	 
+        	 DependencySet ds = DependencySet.INDEPENDENT;
+        	 
+        	 if (log.isLoggable(Level.FINE)) {
+     			log.fine("Node: " + n + " # adding internalize concept: " + ATermUtils.toString(c));
+     		 }
+        	 
+        	 addType( n, c , ds );
+        }
+	}
 	
 }//end QCALCStrategy
 
