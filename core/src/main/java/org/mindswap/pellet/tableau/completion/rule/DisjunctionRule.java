@@ -60,7 +60,10 @@ public class DisjunctionRule extends AbstractTableauRule {
 		for( int j = 0, n = disjunctions.length; j < n; j++ ) {
 			ATermAppl disjunction = disjunctions[j];
 
-			applyDisjunctionRule( node, disjunction );
+			if (PelletOptions.USE_QC_REASONING)
+				applyQcDisjunctionRule( node, disjunction );
+			else
+				applyDisjunctionRule( node, disjunction );
 
 			if( strategy.getABox().isClosed() || node.isMerged() )
 				return;
@@ -106,6 +109,47 @@ public class DisjunctionRule extends AbstractTableauRule {
 		strategy.addBranch( newBranch );
 
 		newBranch.tryNext();
+	}
+	
+	/**
+	 * Apply the qc-disjunction rule to an specific label for an individual
+	 * 
+	 * @param node
+	 * @param disjunction
+	 */
+	protected void applyQcDisjunctionRule(Individual node, ATermAppl disjunction) {
+		// disjunction is now in the form not(and([not(d1), not(d2), ...]))
+		ATermAppl a = (ATermAppl) disjunction.getArgument( 0 );
+		ATermList disjuncts = (ATermList) a.getArgument( 0 );
+		ATermAppl[] disj = new ATermAppl[disjuncts.getLength()];
+		boolean isBranchable = true;
+
+		for( int index = 0; !disjuncts.isEmpty(); disjuncts = disjuncts.getNext(), index++ ) {
+			ATermAppl negC = (ATermAppl) disjuncts.getFirst();	//concept in the form not(C)
+			disj[index] = ATermUtils.negate( negC );	//get the actual concept C
+			if ( node.hasType(disj[index]) || node.hasType(negC) ) {
+				isBranchable = false;
+				continue;	
+			}
+		}
+		
+		if (isBranchable && disj[0] != null) {	// disjunction rule is applicable
+			DisjunctionBranch newBranch = new DisjunctionBranch( strategy.getABox(), strategy, node,
+					disjunction, node.getDepends( disjunction ), disj );
+			strategy.addBranch( newBranch );
+
+			newBranch.tryNext();
+		}
+		else {	// check for R-rule
+			for(int i = 0; i < disj.length; i++){
+				if (node.hasType(disj[i]) || node.hasType( ATermUtils.negate(disj[i]) ) ) 
+					continue;	
+				else {	//R-rule is applicable
+					strategy.addType(node, disj[i], node.getDepends( disjunction ));
+				}
+			}
+		}// end R-rule
+		
 	}
 
 }

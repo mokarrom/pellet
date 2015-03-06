@@ -74,7 +74,7 @@ public class DisjunctionBranch extends Branch {
     
     protected String getDebugMsg() {
         return "DISJ: Branch (" + getBranch() + ") try (" + (getTryNext() + 1) + "/" + getTryCount()
-            + ") " + node + " " +  ATermUtils.toString( disj[getTryNext()] ) + " " + ATermUtils.toString(disjunction);
+            + ") Node: " + node + " Concept: " +  ATermUtils.toString( disj[getTryNext()] ) + " OF " + ATermUtils.toString(disjunction);
     }
 	
 	public DisjunctionBranch copyTo(ABox abox) {
