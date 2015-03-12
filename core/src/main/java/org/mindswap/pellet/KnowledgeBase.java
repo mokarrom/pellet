@@ -2065,7 +2065,8 @@ public class KnowledgeBase {
 		timer.stop();
 		
 		if ( log.isLoggable( Level.FINE ) ) {
-			log.fine( "Consistent: " + consistent + " (" + timer.getLast() + "ms)" );
+			String logStr = PelletOptions.USE_QC_REASONING? "QC-Consistent: " : "Consistent: ";
+			log.fine( logStr + consistent + " (" + timer.getLast() + "ms)" );
 		}
 
 		assert isConsistencyDone() : "Consistency flag not set";

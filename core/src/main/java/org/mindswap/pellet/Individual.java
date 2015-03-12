@@ -268,12 +268,15 @@ public class Individual extends Node implements CachedNode {
 		//create new queue element
 		QueueElement qElement = new QueueElement(this, c);
 		
-		ATermAppl notC = ATermUtils.negate( c );
+		ATermAppl notC = PelletOptions.USE_QC_REASONING ? ATermUtils.qcNegate( c ) : ATermUtils.negate( c );
 		DependencySet clashDepends = depends.get( notC );
 		if( clashDepends != null ) {
-			ATermAppl positive = ATermUtils.isNot( notC )
-				? c
-				: notC;
+			ATermAppl positive;
+			if( PelletOptions.USE_QC_REASONING )
+				positive = ATermUtils.isQcNot( notC )? c : notC;
+			else
+				positive = ATermUtils.isNot( notC )? c : notC;
+			
 			clashDepends = clashDepends.union( ds, abox.doExplanation() );
 			clashDepends = clashDepends.copy( abox.getBranch() );
 			abox.setClash( Clash.atomic( this, clashDepends, positive ) );
@@ -1107,14 +1110,17 @@ public class Individual extends Node implements CachedNode {
 		if( modifiedAfterMerge && restored ) {
 			for( Entry<ATermAppl, DependencySet> entry : depends.entrySet() ) {
 				ATermAppl c = entry.getKey();
-				ATermAppl notC = ATermUtils.negate( c );
+				ATermAppl notC = PelletOptions.USE_QC_REASONING ? ATermUtils.qcNegate( c ) : ATermUtils.negate( c );
 
 				DependencySet ds = depends.get( notC );
 				if( ds != null ) {
 					DependencySet clashDepends = entry.getValue();
-					ATermAppl positive = ATermUtils.isNot( notC )
-						? c
-						: notC;
+					ATermAppl positive;
+					if( PelletOptions.USE_QC_REASONING )
+						positive = ATermUtils.isQcNot( notC )? c : notC;
+					else
+						positive = ATermUtils.isNot( notC )? c : notC;
+					
 					clashDepends = clashDepends.union( ds, abox.doExplanation() );
 					abox.setClash( Clash.atomic( this, clashDepends, positive ) );
 				}

@@ -74,6 +74,7 @@ public class ATermUtils {
 	public static final AFun			SOMEFUN				= factory.makeAFun( "some", 2, false );
 	public static final AFun			ALLFUN				= factory.makeAFun( "all", 2, false );
 	public static final AFun			NOTFUN				= factory.makeAFun( "not", 1, false );
+	public static final AFun			QCNOTFUN			= factory.makeAFun( "qcnot", 1, false );
 	public static final AFun			MAXFUN				= factory.makeAFun( "max", 3, false );
 	public static final AFun			MINFUN				= factory.makeAFun( "min", 3, false );
 	public static final AFun			VALUEFUN			= factory.makeAFun( "value", 1, false );
@@ -84,7 +85,7 @@ public class ATermUtils {
 	public static final AFun			CARDFUN				= factory.makeAFun( "card", 3, false );
 
 	public static Set<AFun>				CLASS_FUN			= SetUtils.create( new AFun[] {
-			ALLFUN, SOMEFUN, MAXFUN, MINFUN, CARDFUN, ANDFUN, ORFUN, NOTFUN, VALUEFUN, SELFFUN } );
+			ALLFUN, SOMEFUN, MAXFUN, MINFUN, CARDFUN, ANDFUN, ORFUN, NOTFUN, QCNOTFUN, VALUEFUN, SELFFUN } );
 	
 	public static final AFun			INVFUN				= factory.makeAFun( "inv", 1, false );
 
@@ -269,6 +270,10 @@ public class ATermUtils {
 		return factory.makeAppl( NOTFUN, c );
 	}
 
+	static public ATermAppl makeQcNot(ATerm c) {
+		return factory.makeAppl( QCNOTFUN, c );
+	}
+	
 	static public ATerm term(String str) {
 		return factory.parse( str );
 	}
@@ -292,6 +297,12 @@ public class ATermUtils {
 		return isNot( a )
 			? (ATermAppl) a.getArgument( 0 )
 			: makeNot( a );
+	}
+	
+	final static public ATermAppl qcNegate(ATermAppl a) {
+		return isQcNot( a )
+			? (ATermAppl) a.getArgument( 0 )
+			: makeQcNot( a );
 	}
 
 	public static final AFun	BNODE_FUN			= factory.makeAFun( "bnode", 1, false );
@@ -1064,6 +1075,10 @@ public class ATermUtils {
 
 	public final static boolean isNot(ATermAppl a) {
 		return a.getAFun().equals( NOTFUN );
+	}
+	
+	public final static boolean isQcNot(ATermAppl a) {
+		return a.getAFun().equals( QCNOTFUN );
 	}
 
 	public final static boolean isMax(ATermAppl a) {

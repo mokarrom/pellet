@@ -205,7 +205,7 @@ public class DisjunctionBranch extends Branch {
 			if( log.isLoggable( Level.FINE ) ) 
                 log.fine( getDebugMsg() );		
 			
-			ATermAppl notD = ATermUtils.negate(d);
+			ATermAppl notD = PelletOptions.USE_QC_REASONING ? ATermUtils.qcNegate(d) : ATermUtils.negate(d);
 			DependencySet clashDepends = PelletOptions.SATURATE_TABLEAU ? null : node.getDepends(notD);
 			if(clashDepends == null) {
 			    strategy.addType(node, d, ds);
@@ -262,7 +262,12 @@ public class DisjunctionBranch extends Branch {
 				else {
 				    // set the clash only if we are returning from the function
 					if(abox.doExplanation()) {
-					    ATermAppl positive = (ATermUtils.isNot(notD) ? d : notD);
+						ATermAppl positive;
+						if( PelletOptions.USE_QC_REASONING )
+							positive = (ATermUtils.isQcNot(notD) ? d : notD);
+						else
+							positive = (ATermUtils.isNot(notD) ? d : notD);
+
 					    abox.setClash(Clash.atomic(node, clashDepends.union(ds, abox.doExplanation()), positive));
 					}
 					else

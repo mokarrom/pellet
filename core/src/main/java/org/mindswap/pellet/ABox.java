@@ -1433,7 +1433,8 @@ public class ABox {
 		}
 		
 		if( log.isLoggable( Level.FINE ) ) {
-			log.fine( "Consistent: " + consistent + " Time: " + t.getElapsed()
+			String logStr = PelletOptions.USE_QC_REASONING? "QC-Consistent: " : "Consistent: ";
+			log.fine( logStr + consistent + " Time: " + t.getElapsed()
 					+" Branches " + abox.branches.size()
 					+" Tree depth: " + abox.stats.treeDepth + " Tree size: " + abox.getNodes().size()
 					+" Restores " + abox.stats.globalRestores + " global " + abox.stats.localRestores + " local"

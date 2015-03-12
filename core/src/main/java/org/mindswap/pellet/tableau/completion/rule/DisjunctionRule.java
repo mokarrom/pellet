@@ -11,6 +11,7 @@ package org.mindswap.pellet.tableau.completion.rule;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.mindswap.pellet.Individual;
 import org.mindswap.pellet.Node;
@@ -145,6 +146,9 @@ public class DisjunctionRule extends AbstractTableauRule {
 				if (node.hasType(disj[i]) || node.hasType( ATermUtils.negate(disj[i]) ) ) 
 					continue;	
 				else {	//R-rule is applicable
+					if( log.isLoggable( Level.FINE ) )  
+		                log.fine( "DISJ: Branch (" + strategy.getABox().getBranch() + ") Node: " + node + " R-rule: adding concept: " +  ATermUtils.toString( disj[i] ) + " OF " + ATermUtils.toString(disjunction) );
+					
 					strategy.addType(node, disj[i], node.getDepends( disjunction ));
 				}
 			}
