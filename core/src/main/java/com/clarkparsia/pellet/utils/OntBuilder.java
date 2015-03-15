@@ -79,6 +79,10 @@ public class OntBuilder {
 		public void visitNot(ATermAppl term) {
 			this.visit( (ATermAppl) term.getArgument( 0 ) );
 		}
+		
+		public void visitQcNot(ATermAppl term) {
+			this.visit( (ATermAppl) term.getArgument( 0 ) );
+		}
 
 		public void visitOneOf(ATermAppl term) {
 			visitList( (ATermList) term.getArgument( 0 ) );

@@ -192,6 +192,11 @@ public class DLExpressivityChecker extends ProfileBasedExpressivityChecker {
 			visit( (ATermAppl) term.getArgument( 0 ) );
 		}
 
+		public void visitQcNot(ATermAppl term) {
+			m_Expressivity.setHasQcNegation(true);
+			visit( (ATermAppl) term.getArgument( 0 ) );
+		}
+		
 		public void visitSome(ATermAppl term) {
 			visitRole( (ATermAppl) term.getArgument( 0 ) );
 			visit( (ATermAppl) term.getArgument( 1 ) );

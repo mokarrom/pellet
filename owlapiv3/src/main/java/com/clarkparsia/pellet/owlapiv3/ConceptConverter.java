@@ -161,6 +161,11 @@ public class ConceptConverter extends ATermBaseVisitor implements ATermVisitor {
 		else if( obj instanceof OWLDataRange )
 			obj = factory.getOWLDataComplementOf( (OWLDataRange) obj );
 	}
+	
+	public void visitQcNot(ATermAppl term) {
+		//[TODO]: Need to be addressed QC-negation.
+		visit( (ATermAppl) term.getArgument( 0 ) );
+	}
 
 	// In the following method(s) we intentionally do not use OWLPropertyExpression<?,?>
 	// because of a bug in some Sun's implementation of javac

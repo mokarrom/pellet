@@ -106,6 +106,15 @@ public class NamedDataRangeExpander extends ATermBaseVisitor {
 		else
 			ret = term;
 	}
+	
+	public void visitQcNot(ATermAppl term) {
+		ATermAppl a = (ATermAppl) term.getArgument( 0 );
+		this.visit( a );
+		if( change )
+			ret = ATermUtils.makeQcNot( ret );
+		else
+			ret = term;
+	}
 
 	public void visitOneOf(ATermAppl term) {
 		ret = term;

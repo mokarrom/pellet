@@ -75,6 +75,9 @@ public abstract class ATermBaseVisitor implements ATermVisitor {
 		else if (af.equals(ATermUtils.NOTFUN)) {
 		    visitNot(term);
 		}
+		else if (af.equals(ATermUtils.QCNOTFUN)) {
+		    visitQcNot(term);
+		}
 		else if (af.equals(ATermUtils.ALLFUN)) {
 		    visitAll(term);
 		}

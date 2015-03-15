@@ -56,6 +56,7 @@ public class Expressivity {
 	 * not (owl:complementOf) is used directly or indirectly
 	 */
 	private boolean			hasNegation			= false;
+	private boolean			hasQcNegation		= false;
 	private boolean			hasAllValues		= false;
 	private boolean			hasDisjointClasses	= false;
 	
@@ -99,6 +100,7 @@ public class Expressivity {
 	
 	public Expressivity(Expressivity other) {
 		hasNegation = other.hasNegation;
+		hasQcNegation = other.hasQcNegation;
 		hasAllValues = other.hasAllValues;
 		hasDisjointClasses = other.hasDisjointClasses;
 		hasInverse = other.hasInverse;
@@ -125,6 +127,7 @@ public class Expressivity {
 	
 	public boolean isEL() {
 		return !hasNegation
+			&& !hasQcNegation
 			&& !hasAllValues
 			&& !hasInverse
 			&& !hasFunctionality
@@ -192,6 +195,9 @@ public class Expressivity {
 				else
 					dl += "(D)";
 			}
+			if( hasQcNegation ){
+				dl = "QC-" + dl;
+			}
 		}
 
 		return dl;
@@ -205,8 +211,19 @@ public class Expressivity {
 		return hasNegation;
 	}
 	
+	/**
+	 * @return Returns the hasQcNegation.
+	 */
+	public boolean hasQcNegation() {
+		return hasQcNegation;
+	}
+	
 	public void setHasNegation(boolean v) {
 		hasNegation = v;
+	}
+	
+	public void setHasQcNegation(boolean v) {
+		hasQcNegation = v;
 	}
 
 	/**

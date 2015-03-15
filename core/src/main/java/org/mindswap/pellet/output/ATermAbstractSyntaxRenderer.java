@@ -66,6 +66,15 @@ public class ATermAbstractSyntaxRenderer extends ATermBaseRenderer implements AT
         out.print("complementOf(");
         visit((ATermAppl) term.getArgument(0));
         out.print(")");    }
+    
+    /* (non-Javadoc)
+     * @see org.mindswap.pellet.utils.ATermVisitor#visitQcNot(aterm.ATermAppl)
+     */
+    public void visitQcNot(ATermAppl term) {
+        out.print("Qc-complementOf(");
+        visit((ATermAppl) term.getArgument(0));
+        out.print(")");    
+    }
 
     /* (non-Javadoc)
      * @see org.mindswap.pellet.utils.ATermVisitor#visitSome(aterm.ATermAppl)

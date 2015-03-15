@@ -116,6 +116,11 @@ public class ConceptConverter extends ATermBaseVisitor implements ATermVisitor {
 
 		createClassExpression( OWL.complementOf );
 	}
+	
+	public void visitQcNot(ATermAppl term) {
+		//[TODO]: Need to be addressed QC-negation.
+		visit( (ATermAppl) term.getArgument( 0 ) );
+	}
 
 	private Node createQualifiedRestriction(ATermAppl term, Property restrType) {
 		Node restr = createRestriction( term, restrType );

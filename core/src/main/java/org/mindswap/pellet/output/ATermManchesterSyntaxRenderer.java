@@ -128,6 +128,11 @@ public class ATermManchesterSyntaxRenderer extends ATermBaseRenderer {
         out.print("not ");
         visit((ATermAppl) term.getArgument(0));
 	}
+	
+	public void visitQcNot(ATermAppl term) {
+        out.print("qcnot ");
+        visit((ATermAppl) term.getArgument(0));
+	}
 
 	public void visitOneOf(ATermAppl term) {
         out.print("{");

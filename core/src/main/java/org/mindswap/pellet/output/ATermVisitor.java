@@ -78,6 +78,13 @@ public interface ATermVisitor {
      * @param term
      */
     public void visitNot(ATermAppl term);
+   
+    /**
+     * Visit the 'qcnot' (qc-complementOf) term. 
+     * 
+     * @param term
+     */
+    public void visitQcNot(ATermAppl term);
     
     /**
      * Visit the 'some' (someValuesFrom restriction) term. 

@@ -247,6 +247,10 @@ public class KnowledgeBase {
 		public void visitNot(ATermAppl term) {
 			this.visit( (ATermAppl) term.getArgument( 0 ) );
 		}
+		
+		public void visitQcNot(ATermAppl term) {
+			this.visit( (ATermAppl) term.getArgument( 0 ) );
+		}
 
 		public void visitAll(ATermAppl term) {
 		}
@@ -359,6 +363,10 @@ public class KnowledgeBase {
 		}
 
 		public void visitNot(ATermAppl term) {
+			this.visit( (ATermAppl) term.getArgument( 0 ) );
+		}
+		
+		public void visitQcNot(ATermAppl term) {
 			this.visit( (ATermAppl) term.getArgument( 0 ) );
 		}
 
