@@ -20,6 +20,8 @@ import org.mindswap.pellet.Role;
 import org.mindswap.pellet.exceptions.InternalReasonerException;
 import org.mindswap.pellet.tableau.blocking.BlockingFactory;
 import org.mindswap.pellet.tableau.branch.Branch;
+import org.mindswap.pellet.tableau.completion.rule.AllValuesRule;
+import org.mindswap.pellet.tableau.completion.rule.SimpleAllValuesRule;
 import org.mindswap.pellet.tableau.completion.rule.TableauRule;
 import org.mindswap.pellet.tbox.impl.Unfolding;
 import org.mindswap.pellet.utils.ATermUtils;
@@ -32,6 +34,61 @@ public class QCALCStrategy extends CompletionStrategy {
 
 	public QCALCStrategy(ABox abox) {
 		super( abox );
+	}
+	
+	protected void configureQcTableauRules(Expressivity expr) {
+		if (!PelletOptions.USE_COMPLETION_STRATEGY) {
+			addAllRules();
+			return;
+		}
+
+		boolean fullDatatypeReasoning = PelletOptions.USE_FULL_DATATYPE_REASONING
+		                                && (expr.hasUserDefinedDatatype() || expr.hasCardinalityD() || expr.hasKeys());
+
+		tableauRules = new ArrayList<TableauRule>();
+
+		if ((!PelletOptions.USE_PSEUDO_NOMINALS && expr.hasNominal()) || implicitNominals()) {
+			tableauRules.add(nominalRule);
+
+			if (expr.hasCardinalityQ()) {
+				tableauRules.add(guessRule);
+			}
+		}
+
+		if (expr.hasCardinalityQ() || expr.hasCardinalityD()) {
+			tableauRules.add(chooseRule);
+		}
+
+		//tableauRules.add(maxRule);	//[TODO]: Temporarily commented.
+
+		if (fullDatatypeReasoning) {
+			tableauRules.add(dataCardRule);
+		}
+
+		tableauRules.add(dataSatRule);
+
+		//tableauRules.add(unfoldingRule);	//[TODO]: Temporarily commented.
+
+		tableauRules.add(disjunctionRule);
+
+		tableauRules.add(someValuesRule);
+
+		//tableauRules.add(minRule);	//[TODO]: Temporarily commented.
+		
+		tableauRules.add(notConjunctionRule);
+		
+		tableauRules.add(notDisjunctionRule);
+		
+		tableauRules.add(notAllValuesRule);
+
+		// no need to add allValuesRule to the list since it is applied on-the-fly
+		if (expr.hasComplexSubRoles()) {
+			allValuesRule = new AllValuesRule(this);
+		}
+		else {
+			allValuesRule = new SimpleAllValuesRule(this);
+		}
+
 	}
 	
 	protected boolean backtrack() {
@@ -124,7 +181,7 @@ public class QCALCStrategy extends CompletionStrategy {
 
 		blocking = BlockingFactory.createBlocking(expressivity);
 
-		configureTableauRules(expressivity);
+		configureQcTableauRules(expressivity);
 
 		for (Branch branch : abox.getBranches()) {
 			branch.setStrategy(this);

@@ -68,14 +68,18 @@ public abstract class Node {
 	
 	public final static int CHANGED   = 0x7F;
 	public final static int UNCHANGED = 0x00;
-	public final static int ATOM = 0;
-	public final static int OR   = 1;
-	public final static int SOME = 2;
-	public final static int ALL  = 3;
-	public final static int MIN  = 4;
-	public final static int MAX  = 5;
-	public final static int NOM  = 6;
-	public final static int TYPES = 7;
+	public final static int ATOM 		= 0;
+	public final static int OR   		= 1;
+	public final static int SOME 		= 2;
+	public final static int ALL  		= 3;
+	public final static int MIN  		= 4;
+	public final static int MAX  		= 5;
+	public final static int NOM  		= 6;
+	public final static int NOTAND  	= 7;
+	public final static int NOTOR  		= 8;
+	public final static int NOTSOME  	= 9;
+	public final static int NOTALL  	= 10;
+	public final static int TYPES 		= 11;
 	
 	protected ABox abox;
 	protected ATermAppl name;

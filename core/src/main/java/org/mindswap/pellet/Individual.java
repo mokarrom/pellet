@@ -40,9 +40,11 @@ import org.mindswap.pellet.tableau.completion.queue.QueueElement;
 import org.mindswap.pellet.utils.ATermUtils;
 import org.mindswap.pellet.utils.Bool;
 
+import aterm.ATerm;
 import aterm.ATermAppl;
 import aterm.ATermInt;
 import aterm.ATermList;
+import aterm.pure.ATermApplImpl;
 
 import com.clarkparsia.pellet.datatypes.exceptions.DatatypeReasonerException;
 
@@ -223,6 +225,203 @@ public class Individual extends Node implements CachedNode {
 	}
 		
 	void addType(ATermAppl c, DependencySet ds, boolean checkForPruned ) {
+		
+		if( PelletOptions.USE_QC_REASONING ) {
+			addQcType(c, ds, checkForPruned);
+		}
+		
+		if( checkForPruned ) {
+		    if( isPruned() )
+		        throw new InternalReasonerException( "Adding type to a pruned node " + this + " " + c );
+		    else if( isMerged() )
+		        return;
+		}
+		else if( isMerged() ) {
+			modifiedAfterMerge = true;
+		}
+		
+		if( depends.containsKey( c ) ) {
+			if( !checkForPruned && ds.isIndependent() ) {
+				depends.put( c, ds );
+			}
+				
+			return;		
+		}
+        
+//        if( ABox.log.isLoggable( Level.FINE ) ) 
+//            ABox.log.fine( "TYPE: " + this + " " + c );        
+		
+		// if we are checking entailment using a precompleted ABox, abox.branch 
+		// is set to -1. however, since applyAllValues is done automatically
+		// and the edge used in applyAllValues may depend on a branch we want
+		// this type to be deleted when that edge goes away, i.e. we backtrack
+		// to a position before the max dependency of this type
+		int b = abox.getBranch();
+		int max = ds.max();
+		if(b == -1 && max != 0)
+		    b = max + 1;
+		
+		ds = ds.copy( b );
+		
+		depends.put(c, ds);
+
+		abox.setChanged( true );
+
+
+	    // add to effected list
+	    if( abox.getBranch() >= 0 && PelletOptions.TRACK_BRANCH_EFFECTS )
+			abox.getBranchEffectTracker().add( abox.getBranch(), this.getName() );		
+		
+		//create new queue element
+		QueueElement qElement = new QueueElement(this, c);
+		
+		ATermAppl notC = ATermUtils.negate( c );
+		DependencySet clashDepends = depends.get( notC );
+		if( clashDepends != null ) {
+			ATermAppl positive = ATermUtils.isNot( notC )
+				? c
+				: notC;
+			clashDepends = clashDepends.union( ds, abox.doExplanation() );
+			clashDepends = clashDepends.copy( abox.getBranch() );
+			abox.setClash( Clash.atomic( this, clashDepends, positive ) );
+		}
+		
+		if (ATermUtils.isPrimitive(c)) {
+			setChanged(ATOM);
+			types[ATOM].add(c);
+
+			if(PelletOptions.USE_COMPLETION_QUEUE){
+				//update completion queue
+				abox.getCompletionQueue().add(qElement, NodeSelector.ATOM );
+			}
+		}
+		else {
+			if (c.getAFun().equals(ATermUtils.ANDFUN)){
+				for(ATermList cs = (ATermList) c.getArgument(0); !cs.isEmpty(); cs = cs.getNext()) {
+					ATermAppl conj = (ATermAppl) cs.getFirst();
+					
+					addType(conj, ds, checkForPruned);
+				}			
+			}
+			else if (c.getAFun().equals(ATermUtils.ALLFUN)) {
+				setChanged(ALL);			
+				types[ALL].add(c);			
+
+				if(PelletOptions.USE_COMPLETION_QUEUE){
+					//update completion queue
+					abox.getCompletionQueue().add( qElement, NodeSelector.UNIVERSAL );
+				}
+			}
+			else if (c.getAFun().equals(ATermUtils.MINFUN)) {
+				if(!isRedundantMin(c)) {
+					types[MIN].add(c);
+					setChanged(MIN);
+					
+					if(PelletOptions.USE_COMPLETION_QUEUE){		
+						//update completion queue
+						abox.getCompletionQueue().add(qElement, NodeSelector.MIN_NUMBER );
+					}
+					
+					// check min clash after concept is added to the type
+					// list. otherwise a clash found will prevent the
+					// addition to the type list and term will be only in the
+					// dependency map. smart restore may not remove the cardinality
+					// from dependency map leaving the node in an invalid state.
+					checkMinClash(c, ds);
+				}				
+			}
+			else if(c.getAFun().equals(ATermUtils.NOTFUN)) {
+				ATermAppl x = (ATermAppl) c.getArgument(0);
+				if(ATermUtils.isAnd(x)) {
+					setChanged(OR);
+					types[OR].add(c);
+					
+					if(PelletOptions.USE_COMPLETION_QUEUE){
+						//update completion queue
+						abox.getCompletionQueue().add( qElement, NodeSelector.DISJUNCTION );
+					}
+				}
+				else if(ATermUtils.isAllValues(x)) {
+					setChanged(SOME);
+					types[SOME].add(c);
+					
+					if(PelletOptions.USE_COMPLETION_QUEUE){
+						//update completion queue					
+						abox.getCompletionQueue().add( qElement, NodeSelector.EXISTENTIAL );
+					}
+				}
+				else if(ATermUtils.isMin(x)) {
+					if(!isRedundantMax(x)) {
+						types[MAX].add(c);
+						setChanged(MAX);
+						
+						if(PelletOptions.USE_COMPLETION_QUEUE){
+							//update completion queue						
+							abox.getCompletionQueue().add( qElement, NodeSelector.MAX_NUMBER );
+							abox.getCompletionQueue().add( qElement, NodeSelector.CHOOSE );
+							abox.getCompletionQueue().add( qElement, NodeSelector.GUESS );
+						}
+						
+						// check max clash after concept is added to the type
+						// list. otherwise a clash found will prevent the
+						// addition to the type list and term will be only in the
+						// dependency map. smart restore may not remove the cardinality
+						// from depdendency map leaving the node in an invalid state.
+						checkMaxClash(c, ds);
+					}
+				}
+				else if(ATermUtils.isNominal(x)) {
+					setChanged(ATOM);
+					types[ATOM].add(c);
+						
+					if(PelletOptions.USE_COMPLETION_QUEUE){
+						//update completion queue					
+						abox.getCompletionQueue().add( qElement, NodeSelector.ATOM );
+					}
+				}
+				else if (ATermUtils.isSelf(x)) {
+	            	ATermAppl p = (ATermAppl) x.getArgument( 0 );
+	            	Role role = abox.getRole( p );
+	            	// during loading role would be null
+	            	if( role != null ) {
+	            		EdgeList selfEdges = outEdges.getEdges(role).getEdgesTo( this );
+	            		if( !selfEdges.isEmpty() ) {	            			
+	            			abox.setClash(Clash.unexplained( this, selfEdges.getDepends( abox.doExplanation() )));
+	            		}
+	            	}
+	            }
+				else if(x.getArity() == 0) {
+					setChanged(ATOM);
+					types[ATOM].add(c);
+					
+					if(PelletOptions.USE_COMPLETION_QUEUE){
+						//update completion queue					
+						abox.getCompletionQueue().add( qElement, NodeSelector.ATOM );
+					}
+				}
+				else
+				    throw new InternalReasonerException( "Invalid type " +  c + " for individual " + name);
+			}
+			else if (c.getAFun().equals(ATermUtils.VALUEFUN)) {
+				setChanged(NOM);
+				types[NOM].add(c);
+			
+				if(PelletOptions.USE_COMPLETION_QUEUE){
+					//update completion queue				
+					abox.getCompletionQueue().add( qElement, NodeSelector.NOMINAL );
+				}
+			}		
+            else if (ATermUtils.isSelf(c)) {
+            	setChanged( ATOM );
+                types[ATOM].add(c);
+            }
+			else {
+				throw new InternalReasonerException("Warning: Adding invalid class constructor - " + c);
+			}				
+		}		
+	}
+		
+	void addQcType(ATermAppl c, DependencySet ds, boolean checkForPruned ) {
 		if( checkForPruned ) {
 		    if( isPruned() )
 		        throw new InternalReasonerException( "Adding type to a pruned node " + this + " " + c );
@@ -386,6 +585,110 @@ public class Individual extends Node implements CachedNode {
 	            		}
 	            	}
 	            }
+				else if(x.getArity() == 0) {
+					setChanged(ATOM);
+					types[ATOM].add(c);
+					
+					if(PelletOptions.USE_COMPLETION_QUEUE){
+						//update completion queue					
+						abox.getCompletionQueue().add( qElement, NodeSelector.ATOM );
+					}
+				}
+				else
+				    throw new InternalReasonerException( "Invalid type " +  c + " for individual " + name);
+			}
+			else if(c.getAFun().equals(ATermUtils.QCNOTFUN)) {	
+				ATermAppl x = (ATermAppl) c.getArgument(0);
+				if(ATermUtils.isAnd(x)) {	//qcnot -> and 
+					setChanged(NOTAND);
+					types[NOTAND].add(c);
+					
+					if(PelletOptions.USE_COMPLETION_QUEUE){
+						//update completion queue
+						abox.getCompletionQueue().add( qElement, NodeSelector.DISJUNCTION );
+					}
+				}
+				else if(ATermUtils.isAllValues(x)) {	//qcnot -> all
+					setChanged(NOTALL);
+					types[NOTALL].add(c);		
+					
+					if(PelletOptions.USE_COMPLETION_QUEUE){
+						//update completion queue					
+						abox.getCompletionQueue().add( qElement, NodeSelector.EXISTENTIAL );
+					}
+				}
+//				else if(ATermUtils.isMin(x)) {
+//					if(!isRedundantMax(x)) {
+//						types[MAX].add(c);
+//						setChanged(MAX);
+//						
+//						if(PelletOptions.USE_COMPLETION_QUEUE){
+//							//update completion queue						
+//							abox.getCompletionQueue().add( qElement, NodeSelector.MAX_NUMBER );
+//							abox.getCompletionQueue().add( qElement, NodeSelector.CHOOSE );
+//							abox.getCompletionQueue().add( qElement, NodeSelector.GUESS );
+//						}
+//						
+//						// check max clash after concept is added to the type
+//						// list. otherwise a clash found will prevent the
+//						// addition to the type list and term will be only in the
+//						// dependency map. smart restore may not remove the cardinality
+//						// from depdendency map leaving the node in an invalid state.
+//						checkMaxClash(c, ds);
+//					}
+//				}
+//				else if(ATermUtils.isNominal(x)) {
+//					setChanged(ATOM);
+//					types[ATOM].add(c);
+//						
+//					if(PelletOptions.USE_COMPLETION_QUEUE){
+//						//update completion queue					
+//						abox.getCompletionQueue().add( qElement, NodeSelector.ATOM );
+//					}
+//				}
+				else if (ATermUtils.isSelf(x)) {
+	            	ATermAppl p = (ATermAppl) x.getArgument( 0 );
+	            	Role role = abox.getRole( p );
+	            	// during loading role would be null
+	            	if( role != null ) {
+	            		EdgeList selfEdges = outEdges.getEdges(role).getEdgesTo( this );
+	            		if( !selfEdges.isEmpty() ) {	            			
+	            			abox.setClash(Clash.unexplained( this, selfEdges.getDepends( abox.doExplanation() )));
+	            		}
+	            	}
+	            }
+				else if(ATermUtils.isNot(x)) {	//qcnot -> not -> {and, forall, C}
+					ATermAppl y = (ATermAppl) x.getArgument(0);
+					if(ATermUtils.isAnd(y)) {
+						setChanged(NOTOR);
+						types[NOTOR].add(c);
+						
+						if(PelletOptions.USE_COMPLETION_QUEUE){
+							//update completion queue
+							abox.getCompletionQueue().add( qElement, NodeSelector.DISJUNCTION );
+						}
+					}
+					else if(ATermUtils.isAllValues(y)) {
+						setChanged(NOTSOME);
+						types[NOTSOME].add(c);
+						
+						if(PelletOptions.USE_COMPLETION_QUEUE){
+							//update completion queue					
+							abox.getCompletionQueue().add( qElement, NodeSelector.EXISTENTIAL );
+						}
+					}
+					else if(y.getArity() == 0) {
+						setChanged(ATOM);
+						types[ATOM].add(c);
+						
+						if(PelletOptions.USE_COMPLETION_QUEUE){
+							//update completion queue					
+							abox.getCompletionQueue().add( qElement, NodeSelector.ATOM );
+						}
+					}
+					else
+					    throw new InternalReasonerException( "Invalid type " +  x + " for individual " + name);
+				}
 				else if(x.getArity() == 0) {
 					setChanged(ATOM);
 					types[ATOM].add(c);

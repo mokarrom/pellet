@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.mindswap.pellet.PelletOptions;
 import org.mindswap.pellet.Role;
 import org.mindswap.pellet.exceptions.InternalReasonerException;
 import org.mindswap.pellet.output.ATermManchesterSyntaxRenderer;
@@ -1271,6 +1272,10 @@ public class ATermUtils {
 	 * @return
 	 */
 	public static ATermAppl normalize(ATermAppl term) {
+		if( PelletOptions.USE_QC_REASONING ){
+			return qcNormalize( term );
+		}
+		
 		ATermAppl norm = term;
 		AFun fun = term.getAFun();
 		ATerm arg1 = (term.getArity() > 0)
@@ -1326,6 +1331,78 @@ public class ATermUtils {
 		return norm;
 	}
 
+	/**
+	 * QC-normalize the term by making following changes:
+	 * <ul>
+	 * <li>or([a1, a2,..., an]) -> not(and[not(a1), not(a2), ..., not(an)]])</li>
+	 * <li>some(p, c) -> all(p, not(c))</li>
+	 * <li>max(p, n) -> not(min(p, n+1))</li>
+	 * </ul>
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public static ATermAppl qcNormalize(ATermAppl term) {
+		ATermAppl norm = term;
+		AFun fun = term.getAFun();
+		ATerm arg1 = (term.getArity() > 0)
+			? term.getArgument( 0 )
+			: null;
+		ATerm arg2 = (term.getArity() > 1)
+			? term.getArgument( 1 )
+			: null;
+		ATerm arg3 = (term.getArity() > 2)
+			? term.getArgument( 2 )
+			: null;
+
+		if( arg1 == null || fun.equals( SELFFUN ) || fun.equals( VALUEFUN ) || fun.equals( INVFUN ) 
+			|| fun.equals( RESTRDATATYPEFUN ) ) {
+			// do nothing because these terms cannot be decomposed any further
+		}
+		else if( fun.equals( NOTFUN ) ) {
+			if( !isPrimitive( (ATermAppl) arg1 ) ) {
+	            norm = qcSimplify( makeNot( qcNormalize( (ATermAppl) arg1 ) ) );
+            }
+		}
+		else if( fun.equals( QCNOTFUN ) ) {
+			if( !isPrimitive( (ATermAppl) arg1 ) ) {
+	            norm = qcSimplify( makeQcNot( qcNormalize( (ATermAppl) arg1 ) ) );
+            }
+		}
+		else if( fun.equals( ANDFUN ) ) {
+			norm = qcSimplify( makeAnd( normalize( (ATermList) arg1 ) ) );
+		}
+		else if( fun.equals( ORFUN ) ) {
+			ATermList neg = negate( (ATermList) arg1 );
+			ATermAppl and = makeAnd( neg );
+			ATermAppl notAnd = makeNot( and );
+			norm = qcNormalize( notAnd );
+		}
+		else if( fun.equals( ALLFUN ) ) {
+			norm = qcSimplify( makeAllValues( arg1, qcNormalize( (ATermAppl) arg2 ) ) );
+		}
+		else if( fun.equals( SOMEFUN ) ) {
+			norm = qcNormalize( makeNot( makeAllValues( arg1, makeNot( arg2 ) ) ) );
+		}
+		else if( fun.equals( MAXFUN ) ) {
+			norm = qcNormalize( makeNot( makeMin( arg1, ((ATermInt) arg2).getInt() + 1, arg3 ) ) );
+		}
+		else if( fun.equals( MINFUN ) ) {
+			norm = qcSimplify( makeMin( arg1, (ATermInt) arg2, qcNormalize( (ATermAppl) arg3 ) ) );
+		}
+		else if( fun.equals( CARDFUN ) ) {
+			ATermAppl normMin = qcSimplify( makeMin( arg1, ((ATermInt) arg2).getInt(),
+					qcNormalize( (ATermAppl) arg3 ) ) );
+			ATermAppl normMax = qcNormalize( makeMax( arg1, ((ATermInt) arg2).getInt(), arg3 ) );
+			norm = qcSimplify( makeAnd( normMin, normMax ) );
+		}
+        else {
+	        throw new InternalReasonerException( "Unknown concept type: " + term );
+        }
+
+		return norm;
+	}
+	
 	/**
 	 * Simplify the term by making following changes:
 	 * <ul>
@@ -1449,6 +1526,144 @@ public class ATermUtils {
 		return simp;
 	}
 
+	/**
+	 * QC-simplify the term by making following changes:
+	 * <ul>
+	 * <li>and([]) -> TOP</li>
+	 * <li>all(p, TOP) -> TOP</li>
+	 * <li>min(p, 0) -> TOP</li>
+	 * <li>and([a1, and([a2,...,an])]) -> and([a1, a2, ..., an]))</li>
+	 * <li>and([a, not(a), ...]) -> BOTTOM</li>
+	 * <li>not(C) -> not(simplify(C))</li>
+	 * </ul>
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public static ATermAppl qcSimplify(ATermAppl term) {
+		ATermAppl simp = term;
+		AFun fun = term.getAFun();
+		ATerm arg1 = (term.getArity() > 0)
+			? term.getArgument( 0 )
+			: null;
+		ATerm arg2 = (term.getArity() > 1)
+			? term.getArgument( 1 )
+			: null;
+		ATerm arg3 = (term.getArity() > 2)
+			? term.getArgument( 2 )
+			: null;
+
+		if( arg1 == null || fun.equals( SELFFUN ) || fun.equals( VALUEFUN ) || fun.equals( ATermUtils.RESTRDATATYPEFUN ) ) {
+			// do nothing because term is primitive or self restriction
+		}
+		else if( fun.equals( NOTFUN ) ) {
+			ATermAppl arg = (ATermAppl) arg1;
+			if( isNot( arg ) ) {
+	            simp = qcSimplify( (ATermAppl) arg.getArgument( 0 ) );
+            }
+			else if( isQcNot( arg ) ) {
+	            simp = qcSimplify( makeQcNot( makeNot( (ATermAppl) arg.getArgument( 0 ) ) ) );
+            }
+            else if( isMin( arg ) ) {
+				ATermInt n = (ATermInt) arg.getArgument( 1 );
+				if( n.getInt() == 0 ) {
+	                simp = BOTTOM;
+                }
+			}
+		}
+		else if( fun.equals( QCNOTFUN ) ) {
+			ATermAppl arg = (ATermAppl) arg1;
+			if( isQcNot( arg ) ) {
+	            simp = qcSimplify( (ATermAppl) arg.getArgument( 0 ) );
+            }
+            else if( isMin( arg ) ) {
+				ATermInt n = (ATermInt) arg.getArgument( 1 );
+				if( n.getInt() == 0 ) {
+	                simp = BOTTOM;
+                }
+			}
+		}
+		else if( fun.equals( ANDFUN ) ) {
+			ATermList conjuncts = (ATermList) arg1;
+			if( conjuncts.isEmpty() ) {
+	            simp = TOP;
+            }
+            else {
+				Set<ATermAppl> set = new HashSet<ATermAppl>();
+				List<ATermAppl> qcNegations = new ArrayList<ATermAppl>();
+				MultiListIterator i = new MultiListIterator( conjuncts );
+				while( i.hasNext() ) {
+					ATermAppl c = i.next();
+					if( c.equals( TOP ) ) {
+	                    continue;
+                    }
+                    else if( c.equals( BOTTOM ) ) {
+	                    return BOTTOM;
+                    }
+                    else if( isAnd( c ) ) {
+	                    i.append( (ATermList) c.getArgument( 0 ) );
+                    }
+                    else if( isQcNot( c ) ) {
+	                    qcNegations.add( c );
+                    }
+                    else {
+	                    set.add( c );
+                    }
+				}
+
+//				for( ATermAppl qcNotC : qcNegations ) {
+//					ATermAppl c = (ATermAppl) qcNotC.getArgument( 0 );
+//					if( set.contains( c ) ) {
+//	                    return BOTTOM;
+//                    }
+//				}
+
+				if( set.isEmpty() ) {
+					if( qcNegations.isEmpty() ) {
+	                    return TOP;
+                    }
+                    else if( qcNegations.size() == 1 ) {
+	                    return qcNegations.get( 0 );
+                    }
+				}
+				else if( set.size() == 1 && qcNegations.isEmpty() ) {
+	                return set.iterator().next();
+                }
+
+				qcNegations.addAll( set );
+				int size = qcNegations.size();
+				ATermAppl[] terms = new ATermAppl[size];
+				qcNegations.toArray( terms );
+				simp = makeAnd( toSet( terms, size ) );
+			}
+		}
+		else if( fun.equals( ALLFUN ) ) {
+			if( arg2.equals( TOP ) ) {
+	            simp = TOP;
+            }
+		}
+		else if( fun.equals( MINFUN ) ) {
+			ATermInt n = (ATermInt) arg2;
+			if( n.getInt() == 0 ) {
+	            simp = TOP;
+            }
+			if( arg3.equals( ATermUtils.BOTTOM ) ) {
+	            simp = BOTTOM;
+            }
+		}
+		else if( fun.equals( MAXFUN ) ) {
+			ATermInt n = (ATermInt) arg2;
+			if( n.getInt() > 0 && arg3.equals( ATermUtils.BOTTOM ) ) {
+	            simp = TOP;
+            }
+		}
+        else {
+	        throw new InternalReasonerException( "Unknown term type: " + term );
+        }
+
+		return simp;
+	}
+	
 	/**
 	 * Creates a simplified and assuming that all the elements have already been
 	 * normalized.
