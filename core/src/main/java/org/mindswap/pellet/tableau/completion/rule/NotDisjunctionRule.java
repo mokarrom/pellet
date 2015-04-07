@@ -4,12 +4,9 @@ import java.util.List;
 
 import org.mindswap.pellet.Individual;
 import org.mindswap.pellet.Node;
-import org.mindswap.pellet.PelletOptions;
-import org.mindswap.pellet.tableau.branch.DisjunctionBranch;
 import org.mindswap.pellet.tableau.branch.NotDisjunctionBranch;
 import org.mindswap.pellet.tableau.completion.CompletionStrategy;
 import org.mindswap.pellet.tableau.completion.queue.NodeSelector;
-import org.mindswap.pellet.tableau.completion.rule.AbstractTableauRule.BlockingType;
 import org.mindswap.pellet.utils.ATermUtils;
 
 import aterm.ATermAppl;
@@ -17,7 +14,7 @@ import aterm.ATermList;
 
 public class NotDisjunctionRule extends AbstractTableauRule {
 	public NotDisjunctionRule(CompletionStrategy strategy) {
-		super( strategy, NodeSelector.DISJUNCTION, BlockingType.COMPLETE );
+		super( strategy, NodeSelector.NOTDISJUNCTION, BlockingType.COMPLETE );
 	}
 
 	public void apply(Individual node) {

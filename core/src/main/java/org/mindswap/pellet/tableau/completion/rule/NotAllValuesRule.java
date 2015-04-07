@@ -16,7 +16,6 @@ import org.mindswap.pellet.Role;
 import org.mindswap.pellet.exceptions.InternalReasonerException;
 import org.mindswap.pellet.tableau.completion.CompletionStrategy;
 import org.mindswap.pellet.tableau.completion.queue.NodeSelector;
-import org.mindswap.pellet.tableau.completion.rule.AbstractTableauRule.BlockingType;
 import org.mindswap.pellet.utils.ATermUtils;
 
 import aterm.ATermAppl;
@@ -26,7 +25,7 @@ import com.clarkparsia.pellet.datatypes.exceptions.UnrecognizedDatatypeException
 
 public class NotAllValuesRule extends AbstractTableauRule {
 	public NotAllValuesRule(CompletionStrategy strategy) {
-		super( strategy, NodeSelector.EXISTENTIAL, BlockingType.COMPLETE );
+		super( strategy, NodeSelector.NOTALLVALUES, BlockingType.COMPLETE );
 	}
 	
 	public void apply( Individual x ) {
@@ -48,7 +47,7 @@ public class NotAllValuesRule extends AbstractTableauRule {
 
     
     protected void applyNotAllValuesRule( Individual x, ATermAppl nav ) {
-        // NotAllValues is now in the form qcnot( all( R.C) )	//not(all(p. not(c)))
+        // NotAllValues is now in the form qcnot( all( R.C) )	
         ATermAppl a = (ATermAppl) nav.getArgument( 0 );
         ATermAppl s = (ATermAppl) a.getArgument( 0 );
         ATermAppl c = (ATermAppl) a.getArgument( 1 );

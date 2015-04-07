@@ -14,7 +14,7 @@ import aterm.ATermList;
 
 public class NotConjunctionRule extends AbstractTableauRule {
 	public NotConjunctionRule(CompletionStrategy strategy) {
-		super( strategy, NodeSelector.DISJUNCTION, BlockingType.COMPLETE );
+		super( strategy, NodeSelector.NOTCONJUNCTION, BlockingType.COMPLETE );
 	}
 	
 	public void apply(Individual node) {

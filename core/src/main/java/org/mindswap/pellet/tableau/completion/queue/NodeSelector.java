@@ -25,7 +25,7 @@ package org.mindswap.pellet.tableau.completion.queue;
 public enum NodeSelector {
 
 	ATOM, CHOOSE, DATATYPE, DISJUNCTION, EXISTENTIAL, GUESS, LITERAL, MAX_NUMBER, MIN_NUMBER,
-	NOMINAL, UNIVERSAL;
+	NOMINAL, UNIVERSAL, NOTCONJUNCTION, NOTDISJUNCTION, NOTALLVALUES;
 
 	public static int numSelectors() {
 		return values().length;
