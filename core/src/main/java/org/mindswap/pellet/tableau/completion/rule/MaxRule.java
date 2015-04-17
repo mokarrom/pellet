@@ -57,9 +57,10 @@ public class MaxRule extends AbstractTableauRule {
         if( !x.canApply( Individual.MAX ) )
         	return;
 
-        List<ATermAppl> maxCardinality = x.getTypes( Node.MAX );
-        for( int i = 0; i < maxCardinality.size(); i++ ) {
-            ATermAppl mc = maxCardinality.get( i );
+        List<ATermAppl> types = x.getTypes( Node.MAX );
+        int size = types.size();
+        for( int i = 0; i < size; i++ ) {
+            ATermAppl mc = types.get( i );
 
             applyMaxRule( x, mc );
             
@@ -69,7 +70,7 @@ public class MaxRule extends AbstractTableauRule {
             if( x.isMerged() ) 
                 return;
         }
-        x.applyNext[Individual.MAX] = maxCardinality.size();
+        x.applyNext[Individual.MAX] = size;
     }
     
     protected void applyMaxRule( Individual x, ATermAppl mc ) {
