@@ -57,9 +57,10 @@ public class QCALCStrategy extends CompletionStrategy {
 
 		if (expr.hasCardinalityQ() || expr.hasCardinalityD()) {
 			tableauRules.add(chooseRule);
+			tableauRules.add(cChooseRule);
 		}
 
-		//tableauRules.add(maxRule);	//[TODO]: Temporarily commented.
+		tableauRules.add(maxRule);	
 
 		if (fullDatatypeReasoning) {
 			tableauRules.add(dataCardRule);
@@ -73,13 +74,17 @@ public class QCALCStrategy extends CompletionStrategy {
 
 		tableauRules.add(someValuesRule);
 
-		//tableauRules.add(minRule);	//[TODO]: Temporarily commented.
+		tableauRules.add(minRule);	
 		
 		tableauRules.add(notConjunctionRule);
 		
 		tableauRules.add(notDisjunctionRule);
 		
 		tableauRules.add(notAllValuesRule);
+		
+		tableauRules.add(notMinRule);
+		
+		tableauRules.add(notMaxRule);
 
 		// no need to add allValuesRule to the list since it is applied on-the-fly
 		if (expr.hasComplexSubRoles()) {

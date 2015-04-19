@@ -16,7 +16,7 @@ import aterm.ATermAppl;
 
 public class ChooseBranch extends DisjunctionBranch {
     public ChooseBranch( ABox abox, CompletionStrategy completion, Node node, ATermAppl c, DependencySet ds ) {
-        super( abox, completion, node, c, ds, new ATermAppl[] { ATermUtils.negate(c), c } );    
+        super( abox, completion, node, c, ds, new ATermAppl[] { ATermUtils.qcNegate(c), c } );    
     }
     
     protected String getDebugMsg() {

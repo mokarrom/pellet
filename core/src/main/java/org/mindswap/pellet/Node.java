@@ -79,7 +79,9 @@ public abstract class Node {
 	public final static int NOTOR  		= 8;
 	public final static int NOTSOME  	= 9;
 	public final static int NOTALL  	= 10;
-	public final static int TYPES 		= 11;
+	public final static int NOTMIN  	= 11;
+	public final static int NOTMAX  	= 12;
+	public final static int TYPES 		= 13;
 	
 	protected ABox abox;
 	protected ATermAppl name;

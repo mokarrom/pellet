@@ -617,35 +617,24 @@ public class Individual extends Node implements CachedNode {
 						abox.getCompletionQueue().add( qElement, NodeSelector.EXISTENTIAL );
 					}
 				}
-//				else if(ATermUtils.isMin(x)) {
-//					if(!isRedundantMax(x)) {
-//						types[MAX].add(c);
-//						setChanged(MAX);
-//						
-//						if(PelletOptions.USE_COMPLETION_QUEUE){
-//							//update completion queue						
-//							abox.getCompletionQueue().add( qElement, NodeSelector.MAX_NUMBER );
-//							abox.getCompletionQueue().add( qElement, NodeSelector.CHOOSE );
-//							abox.getCompletionQueue().add( qElement, NodeSelector.GUESS );
-//						}
-//						
-//						// check max clash after concept is added to the type
-//						// list. otherwise a clash found will prevent the
-//						// addition to the type list and term will be only in the
-//						// dependency map. smart restore may not remove the cardinality
-//						// from depdendency map leaving the node in an invalid state.
-//						checkMaxClash(c, ds);
-//					}
-//				}
-//				else if(ATermUtils.isNominal(x)) {
-//					setChanged(ATOM);
-//					types[ATOM].add(c);
-//						
-//					if(PelletOptions.USE_COMPLETION_QUEUE){
-//						//update completion queue					
-//						abox.getCompletionQueue().add( qElement, NodeSelector.ATOM );
-//					}
-//				}
+				else if (ATermUtils.isMin(x)) {	//qcnot -> min
+					//if(!isRedundantMin(c)) {	//[TODO]: Temporarily commented.
+						types[NOTMIN].add(c);
+						setChanged(NOTMIN);
+						
+						if(PelletOptions.USE_COMPLETION_QUEUE){		
+							//update completion queue
+							abox.getCompletionQueue().add(qElement, NodeSelector.NOT_MIN_NUMBER );
+						}
+						
+						// check min clash after concept is added to the type
+						// list. otherwise a clash found will prevent the
+						// addition to the type list and term will be only in the
+						// dependency map. smart restore may not remove the cardinality
+						// from dependency map leaving the node in an invalid state.
+						//checkMinClash(c, ds);	//[TODO]: Temporarily commented.
+					//}		//[TODO]: Temporarily commented.		
+				}
 				else if (ATermUtils.isSelf(x)) {
 	            	ATermAppl p = (ATermAppl) x.getArgument( 0 );
 	            	Role role = abox.getRole( p );
@@ -657,7 +646,7 @@ public class Individual extends Node implements CachedNode {
 	            		}
 	            	}
 	            }
-				else if(ATermUtils.isNot(x)) {	//qcnot -> not -> {and, forall, C}
+				else if(ATermUtils.isNot(x)) {	//qcnot -> not -> {and, forall, min, C}
 					ATermAppl y = (ATermAppl) x.getArgument(0);
 					if(ATermUtils.isAnd(y)) {
 						setChanged(NOTOR);
@@ -676,6 +665,26 @@ public class Individual extends Node implements CachedNode {
 							//update completion queue					
 							abox.getCompletionQueue().add( qElement, NodeSelector.EXISTENTIAL );
 						}
+					}
+					else if(ATermUtils.isMin(x)) {
+						//if(!isRedundantMax(x)) {	//[TODO]: Temporarily commented.
+							types[NOTMAX].add(c);
+							setChanged(NOTMAX);
+							
+							if(PelletOptions.USE_COMPLETION_QUEUE){
+								//update completion queue						
+								abox.getCompletionQueue().add( qElement, NodeSelector.NOT_MAX_NUMBER );
+								abox.getCompletionQueue().add( qElement, NodeSelector.CCHOOSE );
+								abox.getCompletionQueue().add( qElement, NodeSelector.GUESS );
+							}
+							
+							// check max clash after concept is added to the type
+							// list. otherwise a clash found will prevent the
+							// addition to the type list and term will be only in the
+							// dependency map. smart restore may not remove the cardinality
+							// from depdendency map leaving the node in an invalid state.
+							//checkMaxClash(c, ds);	//[TODO]: Temporarily commented.
+						//}	//[TODO]: Temporarily commented.
 					}
 					else if(y.getArity() == 0) {
 						setChanged(ATOM);

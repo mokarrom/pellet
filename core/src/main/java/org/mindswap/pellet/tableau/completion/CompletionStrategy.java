@@ -38,6 +38,7 @@ import org.mindswap.pellet.tableau.branch.GuessBranch;
 import org.mindswap.pellet.tableau.completion.queue.NodeSelector;
 import org.mindswap.pellet.tableau.completion.queue.QueueElement;
 import org.mindswap.pellet.tableau.completion.rule.AllValuesRule;
+import org.mindswap.pellet.tableau.completion.rule.CChooseRule;
 import org.mindswap.pellet.tableau.completion.rule.ChooseRule;
 import org.mindswap.pellet.tableau.completion.rule.DataCardinalityRule;
 import org.mindswap.pellet.tableau.completion.rule.DataSatisfiabilityRule;
@@ -49,6 +50,8 @@ import org.mindswap.pellet.tableau.completion.rule.NominalRule;
 import org.mindswap.pellet.tableau.completion.rule.NotAllValuesRule;
 import org.mindswap.pellet.tableau.completion.rule.NotConjunctionRule;
 import org.mindswap.pellet.tableau.completion.rule.NotDisjunctionRule;
+import org.mindswap.pellet.tableau.completion.rule.NotMaxRule;
+import org.mindswap.pellet.tableau.completion.rule.NotMinRule;
 import org.mindswap.pellet.tableau.completion.rule.SelfRule;
 import org.mindswap.pellet.tableau.completion.rule.SimpleAllValuesRule;
 import org.mindswap.pellet.tableau.completion.rule.SomeValuesRule;
@@ -136,6 +139,9 @@ public abstract class CompletionStrategy {
 	protected TableauRule notConjunctionRule = new NotConjunctionRule(this);
 	protected TableauRule notDisjunctionRule = new NotDisjunctionRule(this);
 	protected TableauRule notAllValuesRule = new NotAllValuesRule(this);
+	protected TableauRule cChooseRule = new CChooseRule(this);
+	protected TableauRule notMinRule = new NotMinRule(this);
+	protected NotMaxRule notMaxRule = new NotMaxRule(this);
 
 	protected List<TableauRule> tableauRules;
 

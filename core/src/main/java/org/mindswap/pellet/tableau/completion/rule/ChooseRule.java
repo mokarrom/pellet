@@ -74,7 +74,7 @@ public class ChooseRule extends AbstractTableauRule {
             Edge edge = i.next();
             Node neighbor = edge.getNeighbor( x );
 
-            if( !neighbor.hasType( c ) && !neighbor.hasType( ATermUtils.negate( c ) ) ) {
+            if( !neighbor.hasType( c ) && !neighbor.hasType( ATermUtils.qcNegate( c ) ) ) {
                 ChooseBranch newBranch = new ChooseBranch( strategy.getABox(), strategy, neighbor, c, x
                     .getDepends( maxCard ) );
                 strategy.addBranch( newBranch );
