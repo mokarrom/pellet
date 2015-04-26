@@ -52,6 +52,7 @@ import org.mindswap.pellet.tableau.completion.rule.NotConjunctionRule;
 import org.mindswap.pellet.tableau.completion.rule.NotDisjunctionRule;
 import org.mindswap.pellet.tableau.completion.rule.NotMaxRule;
 import org.mindswap.pellet.tableau.completion.rule.NotMinRule;
+import org.mindswap.pellet.tableau.completion.rule.NotSomeValuesRule;
 import org.mindswap.pellet.tableau.completion.rule.SelfRule;
 import org.mindswap.pellet.tableau.completion.rule.SimpleAllValuesRule;
 import org.mindswap.pellet.tableau.completion.rule.SomeValuesRule;
@@ -138,6 +139,7 @@ public abstract class CompletionStrategy {
 	protected TableauRule dataCardRule = new DataCardinalityRule(this);
 	protected TableauRule notConjunctionRule = new NotConjunctionRule(this);
 	protected TableauRule notDisjunctionRule = new NotDisjunctionRule(this);
+	protected NotSomeValuesRule notSomeValuesRule = new NotSomeValuesRule(this);
 	protected TableauRule notAllValuesRule = new NotAllValuesRule(this);
 	protected TableauRule cChooseRule = new CChooseRule(this);
 	protected TableauRule notMinRule = new NotMinRule(this);
@@ -480,6 +482,15 @@ public abstract class CompletionStrategy {
 		else if (c.getAFun().equals(ATermUtils.ALLFUN)) {
 			allValuesRule.applyAllValues((Individual) node, c, ds);
 		}
+		else if (c.getAFun().equals(ATermUtils.QCNOTFUN)) {	// NOTSOME = qcnot->not->forall(r, not(c))
+			ATermAppl x = (ATermAppl) c.getArgument(0);
+			if(ATermUtils.isNot(x)) {
+				ATermAppl y = (ATermAppl) x.getArgument(0);
+				if(ATermUtils.isAllValues(y)) {
+					notSomeValuesRule.applyNotSomeValues((Individual) node, c, ds);
+				}
+			}
+		}
 		else if (c.getAFun().equals(ATermUtils.SELFFUN)) {
 			ATermAppl pred = (ATermAppl) c.getArgument(0);
 			Role role = abox.getRole(pred);
@@ -613,12 +624,14 @@ public abstract class CompletionStrategy {
 		}
 		applyDisjointness(subj, pred, obj, ds);
 		allValuesRule.applyAllValues(subj, pred, obj, ds);
+		notSomeValuesRule.applyNotSomeValues(subj, pred, obj, ds);
 		if (subj.isPruned() || obj.isPruned()) {
 			return;
 		}
 		if (pred.isObjectRole()) {
 			Individual o = (Individual) obj;
 			allValuesRule.applyAllValues(o, pred.getInverse(), subj, ds);
+			notSomeValuesRule.applyNotSomeValues(o, pred.getInverse(), subj, ds);
 			checkReflexivitySymmetry(subj, pred, o, ds);
 			checkReflexivitySymmetry(o, pred.getInverse(), subj, ds);
 			applyDisjointness(o, pred.getInverse(), subj, ds);
@@ -1055,6 +1068,7 @@ public abstract class CompletionStrategy {
 			boolean restored = entry.getValue();
 			if (restored) {
 				allValuesRule.apply((Individual) entry.getKey());
+				notSomeValuesRule.apply((Individual) entry.getKey());
 			}
 		}
 	}
@@ -1261,6 +1275,7 @@ public abstract class CompletionStrategy {
 		for (Iterator<Individual> i = new IndividualIterator(abox); i.hasNext();) {
 			Individual ind = i.next();
 			allValuesRule.apply(ind);
+			notSomeValuesRule.apply(ind);
 		}
 	}
 }

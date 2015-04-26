@@ -21,7 +21,9 @@ import org.mindswap.pellet.exceptions.InternalReasonerException;
 import org.mindswap.pellet.tableau.blocking.BlockingFactory;
 import org.mindswap.pellet.tableau.branch.Branch;
 import org.mindswap.pellet.tableau.completion.rule.AllValuesRule;
+import org.mindswap.pellet.tableau.completion.rule.NotSomeValuesRule;
 import org.mindswap.pellet.tableau.completion.rule.SimpleAllValuesRule;
+import org.mindswap.pellet.tableau.completion.rule.SimpleNotSomeValuesRule;
 import org.mindswap.pellet.tableau.completion.rule.TableauRule;
 import org.mindswap.pellet.tbox.impl.Unfolding;
 import org.mindswap.pellet.utils.ATermUtils;
@@ -89,9 +91,11 @@ public class QCALCStrategy extends CompletionStrategy {
 		// no need to add allValuesRule to the list since it is applied on-the-fly
 		if (expr.hasComplexSubRoles()) {
 			allValuesRule = new AllValuesRule(this);
+			notSomeValuesRule = new NotSomeValuesRule(this);
 		}
 		else {
 			allValuesRule = new SimpleAllValuesRule(this);
+			notSomeValuesRule = new SimpleNotSomeValuesRule(this);
 		}
 
 	}
@@ -207,6 +211,8 @@ public class QCALCStrategy extends CompletionStrategy {
 				}
 
 				allValuesRule.apply(n);
+				notSomeValuesRule.apply(n);
+				
 				if (n.isMerged()) {
 					continue;
 				}
