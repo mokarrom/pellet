@@ -1432,13 +1432,17 @@ public class ABox {
 			cache( abox.getIndividual( x ), c, consistent );
 		}
 		
+		String logStr = PelletOptions.USE_QC_REASONING? "QC-Consistent: " : "Consistent: ";
+		logStr += consistent + " Time: " + t.getElapsed();
+		logStr += " Branches " + abox.branches.size();
+		logStr += " Tree depth: " + abox.stats.treeDepth + " Tree size: " + abox.getNodes().size();
+		logStr += " Restores " + abox.stats.globalRestores + " global " + abox.stats.localRestores + " local";
+		logStr += " Backtracks " + abox.stats.backtracks + " avg backjump " + (abox.stats.backjumps/(double)abox.stats.backtracks);
+		
+		//System.out.println(logStr);	//Print the the result in console.
+		
 		if( log.isLoggable( Level.FINE ) ) {
-			String logStr = PelletOptions.USE_QC_REASONING? "QC-Consistent: " : "Consistent: ";
-			log.fine( logStr + consistent + " Time: " + t.getElapsed()
-					+" Branches " + abox.branches.size()
-					+" Tree depth: " + abox.stats.treeDepth + " Tree size: " + abox.getNodes().size()
-					+" Restores " + abox.stats.globalRestores + " global " + abox.stats.localRestores + " local"
-					+" Backtracks " + abox.stats.backtracks + " avg backjump " + (abox.stats.backjumps/(double)abox.stats.backtracks));
+			log.fine(logStr);
 		}
 
 		if( consistent ) {

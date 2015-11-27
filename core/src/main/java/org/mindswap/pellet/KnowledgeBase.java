@@ -42,6 +42,7 @@ import static java.lang.String.format;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.rmi.server.LogStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -2072,11 +2073,15 @@ public class KnowledgeBase {
 		
 		timer.stop();
 		
-		if ( log.isLoggable( Level.FINE ) ) {
-			String logStr = PelletOptions.USE_QC_REASONING? "QC-Consistent: " : "Consistent: ";
-			log.fine( logStr + consistent + " (" + timer.getLast() + "ms)" );
+		String logStr = PelletOptions.USE_QC_REASONING? "QC-Consistent: " : "Consistent: ";
+		logStr += consistent + " (" + timer.getLast() + "ms)";
+		
+		System.out.println(logStr);	//print log data in console.
+		
+		if ( log.isLoggable( Level.FINE ) ) {		
+			log.fine( logStr );
 		}
-
+		
 		assert isConsistencyDone() : "Consistency flag not set";
 	}
 
